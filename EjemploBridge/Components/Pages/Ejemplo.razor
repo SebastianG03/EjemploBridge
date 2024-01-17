@@ -1,0 +1,58 @@
+﻿@page "/ejemplo"
+@rendermode InteractiveServer
+
+
+@using Domain.Models
+@using Domain.Services
+
+<InputSelect DisplayName="Options" @bind-Value="selectedRemoteName">
+    <option></option>
+    @foreach (var component in remotes)
+    {
+        <option value="@component.Name">@component.Name</option>
+    }
+</InputSelect>
+
+<br />
+<br />
+<section>
+    @if (!string.IsNullOrEmpty(selectedRemoteName))
+    {
+        <div>
+            <p>Seleccionado: @selectedRemoteName</p>
+            @if (selectedRemoteName == "TV Remote")
+            {
+                <h3>@SearchDevice("TV")</h3>
+                <img src="/tv.jpg" />
+            }
+            else if (selectedRemoteName == "Radio Remote")
+            {
+                <h3>@SearchDevice("Radio")</h3>
+                <img src="/radio.jpg" />
+            }
+        </div>
+    }
+    else
+    {
+        <p>Elige algo...</p>
+    }
+</section>
+
+@code {
+    List<Remote> remotes = new List<Remote>();
+    List<Device> devices = new List<Device>();
+    string selectedRemoteName { get; set; } = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        remotes = await BridgePatternService.Singleton().GetRemotes();
+        devices = await BridgePatternService.Singleton().GetDevices();
+    }
+
+    private String SearchDevice(String name)
+    {
+        int index = devices.FindIndex(x => x.Name == name);
+        if (index == -1) return "";
+        return devices[index].Name;
+    }
+}
